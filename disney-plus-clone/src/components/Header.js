@@ -1,26 +1,65 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { auth, provider } from "../firebase"
 import styled from 'styled-components'
+import { useHistory } from "react-router-dom"
 import { 
     selectUserName,
     selectUserPhoto,
+    setUserLogin,
+    setSignOut
 } from "../features/user/userSlice"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 
 function Header() {
+    const dispatch = useDispatch()
+    const history = useHistory()
     const userName = useSelector(selectUserName);
     const userPhoto = useSelector(selectUserPhoto);
+
+    useEffect(() =>{
+        auth.onAuthStateChanged(async (user) =>{
+            if(user){
+                dispatch(setUserLogin({
+                    name: user.displayName,
+                    email: user.email,
+                    photo: user.photoURL
+                }))
+                history.push('/')
+            }
+        })
+    },[])
+
+    const signIn = () => {
+        auth.signInWithPopup(provider)
+        .then((result)=>{
+            console.log(result);
+            let user = result.user
+            dispatch(setUserLogin({
+                name: user.displayName,
+                email: user.email,
+                photo: user.photoURL
+            }))
+            history.push('/')
+        })
+    }
+
+    const signOut = () => {
+        auth.signOut()
+        .then(()=>{
+            dispatch(setSignOut());
+            history.push("/login")
+        })
+    }
 
     return (
         <Nav>
             <Logo src="/images/logo.svg" />
             { !userName ? (
                 <LoginContainer>
-                    <Login>Login</Login> 
+                    <Login onClick={signIn}>Login</Login> 
                 </LoginContainer>
             ):
-                
-                <>
-
+            <>
                 <NavMenu>
                 <a>
                     <img src="/images/home-icon.svg" />
@@ -47,7 +86,7 @@ function Header() {
                     <span>SERIES</span>
                 </a>
             </NavMenu>
-            <UserImg />
+            <UserImg onClick={signOut} />
 
                 </>
 
