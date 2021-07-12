@@ -24,7 +24,7 @@ function Detail() {
     return (
         <Container>
             {movie && (
-                <>
+            <>
                 <Background>
                 <img src={movie.backgroundImg} />
             </Background>
